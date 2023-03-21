@@ -1,0 +1,324 @@
+rules:
+  - name: bucket_acl_publicly_readable
+    query: |-
+      SELECT
+        DISTINCT(a1.*)
+      FROM
+        aws_s3_buckets a1,
+        aws_s3_bucket_grants a2
+      WHERE
+        a1.selefra_id = a2.aws_s3_buckets_selefra_id
+        AND a2.grantee :: jsonb ->> 'URI' = 'http://acs.amazonaws.com/groups/global/AllUsers'
+        AND a2.permission IN ('READ_ACP', 'FULL_CONTROL');
+    output: "S3 bucket acl public readable, arn: {{.arn}}"
+  - name: bucket_acl_publicly_writeable
+    query: |-
+      SELECT
+        DISTINCT(a1.*)
+      FROM
+        aws_s3_buckets a1,
+        aws_s3_bucket_grants a2
+      WHERE
+       a1.selefra_id = a2.aws_s3_buckets_selefra_id
+        AND a2.grantee :: jsonb ->> 'URI' = 'http://acs.amazonaws.com/groups/global/AllUsers'
+        AND a2.permission IN ('WRITE_ACP', 'FULL_CONTROL');
+    output: "S3 bucket acl public writable, arn: {{.arn}}"
+  - name: bucket_allow_http_access
+    query: |-
+      SELECT
+        DISTINCT(a1.*)
+      FROM
+        aws_s3_buckets AS a1 FULL
+        OUTER JOIN (
+          SELECT
+            *
+          FROM
+            aws_s3_buckets,
+            jsonb_array_elements(policy :: jsonb -> 'Statement') as a2
+          WHERE
+            (
+              a2 ->> 'Effect' = 'Allow'
+              AND (
+                a2 -> 'Condition' -> 'Bool' ->> 'aws:SecureTransport' = 'true'
+                OR a2 -> 'Condition' -> 'Bool' ->> 'aws:SecureTransport' = 'True'
+              )
+            )
+            OR (
+              a2 ->> 'Effect' = 'Deny'
+              AND (
+                a2 -> 'Condition' -> 'Bool' ->> 'aws:SecureTransport' = 'false'
+                OR a2 -> 'Condition' -> 'Bool' ->> 'aws:SecureTransport' = 'False'
+              )
+            )
+        ) AS a3 ON a1.selefra_id = a3.selefra_id
+      WHERE
+        a1.selefra_id <> a3.selefra_id
+        OR a3.selefra_id IS NULL;
+    output: "S3 bucket allow http access, arn: {{.arn}}"
+  - name: bucket_default_encryption_disable
+    query: |-
+      SELECT
+        DISTINCT(a1.*)
+      FROM
+        aws_s3_buckets AS a1 FULL
+        OUTER JOIN (
+          SELECT
+            a2.aws_s3_buckets_selefra_id
+          FROM
+            aws_s3_bucket_encryption_rules AS a2
+        ) AS a3 ON a1.selefra_id = a3.aws_s3_buckets_selefra_id
+      WHERE
+        a1.selefra_id <> a3.aws_s3_buckets_selefra_id
+        OR a3.aws_s3_buckets_selefra_id IS NULL;
+    output: "S3 bucket default encryption disable, arn: {{.arn}}"
+  - name: bucket_is_not_configured_with_cors_rules
+    query: |-
+      SELECT
+        DISTINCT(a1.*)
+      FROM
+        aws_s3_buckets AS a1 FULL
+        OUTER JOIN aws_s3_bucket_cors_rules AS a2 ON a1.selefra_id = a2.aws_s3_buckets_selefra_id
+      WHERE
+        aws_s3_buckets_selefra_id IS NULL;
+    output: "S3 bucket is not configured with cors rules, arn: {{.arn}}"
+  - name: bucket_logging_disable
+    query: |-
+      SELECT
+        *
+      FROM
+        aws_s3_buckets
+      WHERE
+        logging_target_bucket IS NULL
+        AND logging_target_prefix IS NULL;
+    output: "S3 bucket logging disable, arn: {{.arn}}"
+  - name: bucket_not_configured_block_public_access
+    query: |-
+      SELECT
+        *
+      FROM
+        aws_s3_buckets
+      WHERE
+        block_public_acls IS NOT TRUE
+        OR block_public_policy IS NOT TRUE
+        OR ignore_public_acls IS NOT TRUE
+        OR restrict_public_buckets IS NOT TRUE;
+    output: "S3 bucket not configured block public access, arn: {{.arn}}"
+  - name: bucket_object_traversal_by_acl
+    query: |-
+      SELECT
+        DISTINCT(a1.*)
+      FROM
+        aws_s3_buckets a1,
+        aws_s3_bucket_grants a2
+      WHERE
+       a1.selefra_id = a2.aws_s3_buckets_selefra_id
+        AND a2.grantee :: jsonb ->> 'URI' = 'http://acs.amazonaws.com/groups/global/AllUsers'
+        AND a2.permission IN ('READ', 'FULL_CONTROL');
+    output: "S3 bucket object traversal by acl, arn: {{.arn}}"
+  - name: bucket_object_traversal_by_policy
+    query: |-
+      SELECT
+        DISTINCT(a1.*)
+      FROM
+        aws_s3_buckets a1,
+        json_array_elements(a1.policy :: json -> 'Statement') a2
+      WHERE
+        (
+          a2 ->> 'Action' = 's3:ListBucket'
+          OR a2 ->> 'Action' = 's3:List*'
+          OR a2 ->> 'Action' = 's3:*'
+        )
+        AND a2 ->> 'Effect' = 'Allow'
+        AND (
+          a2 ->> 'Principal' = '*'
+          OR a2 -> 'Principal' ->> 'AWS' = '*'
+        )
+        AND right(substring(a2 ->> 'Resource', -2), 2) <> '/*' ;
+    output: "S3 bucket object traversal by policy, arn: {{.arn}}"
+  - name: bucket_publicly_readable
+    query: |-
+      SELECT
+        DISTINCT(a1.*)
+      FROM
+        aws_s3_buckets a1,
+        json_array_elements (a1.policy :: json -> 'Statement') a2
+      WHERE
+        (
+          a2 ->> 'Action' = 's3:GetObject'
+          OR a2 ->> 'Action' = 's3:Get*'
+          OR a2 ->> 'Action' = 's3:*'
+        )
+        AND a2 ->> 'Effect' = 'Allow'
+        AND (
+          a2 ->> 'Principal' = '*'
+          OR a2 -> 'Principal' ->> 'AWS' = '*'
+        );
+    output: "S3 bucket public readable, arn: {{.arn}}"
+  - name: bucket_publicly_writeable
+    query: |-
+      SELECT
+        DISTINCT(a1.*)
+      FROM
+        aws_s3_buckets a1,
+        aws_s3_bucket_grants a2
+      WHERE
+        a1.selefra_id = a2.aws_s3_buckets_selefra_id
+        AND a2.grantee :: jsonb ->> 'URI' = 'http://acs.amazonaws.com/groups/global/AllUsers'
+        AND a2.permission IN ('WRITE', 'FULL_CONTROL');
+    output: "S3 bucket public writable, arn: {{.arn}}"
+  - name: bucket_source_ip_not_set
+    query: |-
+      SELECT
+        DISTINCT(a1.*)
+      FROM
+        aws_s3_buckets AS a1 FULL
+        OUTER JOIN (
+          SELECT
+            name,
+            selefra_id
+          FROM
+            aws_s3_buckets,
+            jsonb_array_elements (policy :: jsonb -> 'Statement') AS a2
+          WHERE
+            (
+              a2 ->> 'Effect' = 'Allow'
+              AND a2 -> 'Condition' -> 'IpAddress' -> 'aws:SourceIp' IS NOT NULL
+            )
+            OR (
+              a2 ->> 'Effect' = 'Deny'
+              AND a2 -> 'Condition' -> 'NotIpAddress' -> 'aws:SourceIp' IS NOT NULL
+            )
+        ) AS a3 ON a1.selefra_id = a3.selefra_id
+      WHERE
+        a1.name <> a3.name
+        OR a3.name IS NULL;
+    output: "S3 bucket source ip not set, arn: {{.arn}}"
+  - name: bucket_versioning_is_disabled
+    query: |-
+      SELECT
+        *
+      FROM
+        aws_s3_buckets
+      WHERE
+        versioning_status IS DISTINCT
+      FROM
+        'Enabled';
+    output: "S3 bucket versioning is disabled, arn: {{.arn}}"
+  - name: mfa_delete_is_disable
+    query: |-
+      SELECT
+        *
+      FROM
+        aws_s3_buckets
+      WHERE
+        versioning_status IS DISTINCT
+      FROM
+        'Enabled'
+        OR versioning_mfa_delete IS DISTINCT
+      FROM
+        'Enabled';
+    output: "MFA delete is disable, arn: {{.arn}}"
+  - name: s3_account_level_public_access_not_blocks
+    query: |-
+      SELECT
+        *
+      FROM
+        aws_s3_accounts
+      WHERE
+        public_access_block_configuration -> 'BlockPublicAcls' = 'false'
+        OR public_access_block_configuration -> 'IgnorePublicAcls' = 'false'
+        OR public_access_block_configuration -> 'BlockPublicPolicy' = 'false'
+        OR public_access_block_configuration -> 'RestrictPublicBuckets' = 'false';
+    output: "S3 account level public access not blocks, account id: {{.account_id}}"
+  - name: s3_bucket_blacklisted_actions_prohibited
+    query: |-
+      SELECT
+        DISTINCT (a1.*)
+      FROM
+        aws_s3_buckets a1,
+        json_array_elements (a1.policy :: json -> 'Statement') a2
+      WHERE
+        a2 ->> 'Action' IN (
+          's3:*', 's3:GetBucket*', 's3:DeleteObject',
+          's3:DeleteBucketPolicy', 's3:PutBucketAcl',
+          's3:PutBucketPolicy', 's3:PutEncryptionConfiguration',
+          's3:PutObjectAcl'
+        )
+        AND a2 ->> 'Effect' = 'Allow'
+        AND (
+          a2 ->> 'Principal' = '*'
+          OR a2 -> 'Principal' ->> 'AWS' = '*'
+        );
+    output: "S3 bucket blacklisted actions prohibited, arn: {{.arn}}"
+  - name: s3_bucket_replication_disabled
+    query: |-
+      select
+      DISTINCT(aws_s3_buckets.*)
+      from
+      aws_s3_buckets, JSONB_ARRAY_ELEMENTS(
+          case jsonb_typeof(replication_rules)
+          when 'array' then replication_rules
+          else '[]' end
+      ) as r
+      where
+      r->>'Status' is distinct from 'Enabled';
+    output: "S3 bucket replication disabled, arn: {{.arn}}"
+  - name: s3_is_not_protected_by_backup_plan
+    query: |-
+      SELECT
+        *
+      FROM
+        aws_backup_region_settings
+      WHERE
+        resource_type_opt_in_preference ->> 'S3' IS DISTINCT
+      FROM
+        'true';
+    output: "S3 is not protected by backup plan, region: {{.region}}"
+  - name: s3_last_backup_recovery_point
+    query: |-
+      SELECT
+        DISTINCT (a1.*)
+      FROM
+        aws_s3_buckets a1
+        LEFT JOIN aws_backup_vault_recovery_points a2 ON a1.arn = a2.resource_arn
+      WHERE
+        a2.selefra_id IS NULL
+        OR date_part( 'day', NOW() - a2.completion_date ) > 31;
+    output: "S3 last backup recovery point, arn: {{.arn}}"
+  - name: s3_not_default_encryption_kms
+    query: |-
+      with data as (
+      select
+      bucket_arn
+      from
+        aws_s3_bucket_encryption_rules,
+        jsonb_array_elements(apply_server_side_encryption_by_default -> 'Rules') as rules
+      where
+        rules -> 'ApplyServerSideEncryptionByDefault' ->> 'KMSMasterKeyID' is not null
+      )
+      select
+      DISTINCT (b.*)
+      from
+      aws_s3_buckets as b
+      left join data as d on b.arn = d.bucket_arn
+      where d.bucket_arn is null and b.arn is not null and b.versioning_status = 'Enabled';
+    output: "S3 not default encryption kms, arn: {{.arn}}"
+  - name: s3_version_lifecycle_policy_not_check
+    query: |-
+      SELECT
+        DISTINCT v.*
+      FROM
+        aws_s3_buckets AS v
+        LEFT JOIN aws_s3_bucket_lifecycles AS f ON v.account_id = f.account_id
+      WHERE
+        f.account_id IS NULL;
+    output: "S3 version lifecycle policy not check, arn: {{.arn}}"
+  - name: the_target_bucket_for_server_access_logging_is_the_bucket_itself
+    query: |-
+      SELECT
+        *
+      FROM
+        aws_s3_buckets
+      WHERE
+        name = logging_target_bucket;
+    output: "The target bucket for server access logging is the bucket itself, arn: {{.arn}}"

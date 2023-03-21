@@ -1,0 +1,3 @@
+﻿modules:
+  - name: aws-misconfiguration-s3
+    uses: aws-misconfiguration-s3

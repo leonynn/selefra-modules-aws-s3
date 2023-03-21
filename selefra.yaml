@@ -1,0 +1,7 @@
+selefra:
+  name: aws-misconfiguration-s3
+  cli_version: "latest"
+  providers:
+    - name: aws
+      source: aws
+      version: "latest"
