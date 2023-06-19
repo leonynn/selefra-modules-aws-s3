@@ -1,5 +1,30 @@
 rules:
-- metadata:
+- labels:
+    bucket_url: https://{{.name}}.s3.{{.region}}.amazonaws.com
+    resource_account_id: '{{.account_id}}'
+    resource_id: '{{.arn}}'
+    resource_region: '{{.region}}'
+    resource_type: S3
+  metadata:
+    author: Selefra
+    description: Ensure S3 bucket ACLs prevent public read access to protect sensitive
+      data from unauthorized access.
+    id: SF010106
+    provider: AWS
+    remediation: ./remediation/s3/bucket_acl_publicly_readable.md
+    severity: Medium
+    tags:
+    - Attack Scenarios
+    - Attack Surface
+    - Security
+    - Misconfiguration
+    - PCI
+    - APRA
+    - MAS
+    - NIST4
+    - ISO 27001
+    - SOC 2
+    - AWS Config
     title: S3 bucket acl public readable
   name: bucket_acl_publicly_readable
   output: 'S3 bucket acl public readable, arn: {{.arn}}'
@@ -7,7 +32,32 @@ rules:
     \ a2\nWHERE\n  a1.selefra_id = a2.aws_s3_buckets_selefra_id\n  AND a2.grantee\
     \ :: jsonb ->> 'URI' = 'http://acs.amazonaws.com/groups/global/AllUsers'\n  AND\
     \ a2.permission IN ('READ_ACP', 'FULL_CONTROL');"
-- metadata:
+- labels:
+    bucket_url: https://{{.name}}.s3.{{.region}}.amazonaws.com
+    resource_account_id: '{{.account_id}}'
+    resource_id: '{{.arn}}'
+    resource_region: '{{.region}}'
+    resource_type: S3
+  metadata:
+    author: Selefra
+    description: Ensure S3 buckets have restricted access to prevent public write
+      permissions, protecting sensitive data and avoiding unauthorized changes.
+    id: SF010105
+    provider: AWS
+    remediation: ./remediation/s3/bucket_acl_publicly_writeable.md
+    severity: Critical
+    tags:
+    - Attack Scenarios
+    - Attack Surface
+    - Security
+    - Misconfiguration
+    - PCI
+    - APRA
+    - MAS
+    - NIST4
+    - ISO 27001
+    - SOC 2
+    - AWS Config
     title: S3 bucket acl public writable
   name: bucket_acl_publicly_writeable
   output: 'S3 bucket acl public writable, arn: {{.arn}}'
@@ -15,7 +65,32 @@ rules:
     \ a2\nWHERE\n a1.selefra_id = a2.aws_s3_buckets_selefra_id\n  AND a2.grantee ::\
     \ jsonb ->> 'URI' = 'http://acs.amazonaws.com/groups/global/AllUsers'\n  AND a2.permission\
     \ IN ('WRITE_ACP', 'FULL_CONTROL');"
-- metadata:
+- labels:
+    bucket_url: https://{{.name}}.s3.{{.region}}.amazonaws.com
+    resource_account_id: '{{.account_id}}'
+    resource_id: '{{.arn}}'
+    resource_region: '{{.region}}'
+    resource_type: S3
+  metadata:
+    author: Selefra
+    description: Enforce a policy to block HTTP requests on S3 Buckets, ensuring secure
+      data access through HTTPS only.
+    id: SF010102
+    provider: AWS
+    remediation: ./remediation/s3/bucket_allow_http_access.md
+    severity: Medium
+    tags:
+    - Attack Scenarios
+    - Attack Surface
+    - Security
+    - Misconfiguration
+    - CIS Benchmark
+    - PCI
+    - APRA
+    - MAS
+    - NIST4
+    - ISO 27001
+    - AWS Config
     title: S3 bucket allow http access
   name: bucket_allow_http_access
   output: 'S3 bucket allow http access, arn: {{.arn}}'
@@ -29,7 +104,33 @@ rules:
     \ = 'false'\n          OR a2 -> 'Condition' -> 'Bool' ->> 'aws:SecureTransport'\
     \ = 'False'\n        )\n      )\n  ) AS a3 ON a1.selefra_id = a3.selefra_id\n\
     WHERE\n  a1.selefra_id <> a3.selefra_id\n  OR a3.selefra_id IS NULL;"
-- metadata:
+- labels:
+    bucket_url: https://{{.name}}.s3.{{.region}}.amazonaws.com
+    resource_account_id: '{{.account_id}}'
+    resource_id: '{{.arn}}'
+    resource_region: '{{.region}}'
+    resource_type: S3
+  metadata:
+    author: Selefra
+    description: Ensure encryption is enabled for all S3 buckets to protect stored
+      data from unauthorized access.
+    id: SF010101
+    provider: AWS
+    remediation: ./remediation/s3/bucket_default_encryption_disable.md
+    severity: Low
+    tags:
+    - Security
+    - Misconfiguration
+    - CIS Benchmark
+    - PCI
+    - HIPAA
+    - GDPR
+    - APRA
+    - MAS
+    - NIST4
+    - ISO 27001
+    - SOC 2
+    - AWS Config
     title: S3 bucket default encryption disable
   name: bucket_default_encryption_disable
   output: 'S3 bucket default encryption disable, arn: {{.arn}}'
@@ -37,27 +138,112 @@ rules:
     \ (\n    SELECT\n      a2.aws_s3_buckets_selefra_id\n    FROM\n      aws_s3_bucket_encryption_rules\
     \ AS a2\n  ) AS a3 ON a1.selefra_id = a3.aws_s3_buckets_selefra_id\nWHERE\n  a1.selefra_id\
     \ <> a3.aws_s3_buckets_selefra_id\n  OR a3.aws_s3_buckets_selefra_id IS NULL;"
-- metadata:
+- labels:
+    bucket_url: https://{{.name}}.s3.{{.region}}.amazonaws.com
+    resource_account_id: '{{.account_id}}'
+    resource_id: '{{.arn}}'
+    resource_region: '{{.region}}'
+    resource_type: S3
+  metadata:
+    author: Selefra
+    description: Configure secure Cross-Origin Resource Sharing (CORS) rules for the
+      S3 bucket to allow safe data access and prevent unauthorized data sharing across
+      domains. This policy ensures data protection and compliance.
+    id: SF010117
+    provider: AWS
+    remediation: ./remediation/s3/bucket_is_not_configured_with_cors_rules.md
+    severity: Low
+    tags:
+    - Security
+    - Misconfiguration
     title: S3 bucket is not configured with cors rules
   name: bucket_is_not_configured_with_cors_rules
   output: 'S3 bucket is not configured with cors rules, arn: {{.arn}}'
   query: "SELECT\n  DISTINCT(a1.*)\nFROM\n  aws_s3_buckets AS a1 FULL\n  OUTER JOIN\
     \ aws_s3_bucket_cors_rules AS a2 ON a1.selefra_id = a2.aws_s3_buckets_selefra_id\n\
     WHERE\n  aws_s3_buckets_selefra_id IS NULL;"
-- metadata:
+- labels:
+    bucket_url: https://{{.name}}.s3.{{.region}}.amazonaws.com
+    resource_account_id: '{{.account_id}}'
+    resource_id: '{{.arn}}'
+    resource_region: '{{.region}}'
+    resource_type: S3
+  metadata:
+    author: Selefra
+    description: Enable S3 bucket logging to maintain access records and detect potential
+      security issues.
+    id: SF010111
+    provider: AWS
+    remediation: ./remediation/s3/bucket_logging_disable.md
+    severity: Low
+    tags:
+    - Security
+    - Misconfiguration
+    - PCI
+    - HIPAA
+    - GDPR
+    - APRA
+    - MAS
+    - NIST4
+    - ISO 27001
+    - SOC 2
+    - AWS Config
     title: S3 bucket logging disable
   name: bucket_logging_disable
   output: 'S3 bucket logging disable, arn: {{.arn}}'
   query: "SELECT\n  *\nFROM\n  aws_s3_buckets\nWHERE\n  logging_target_bucket IS NULL\n\
     \  AND logging_target_prefix IS NULL;"
-- metadata:
+- labels:
+    resource_account_id: '{{.account_id}}'
+    resource_id: '{{.arn}}'
+    resource_region: '{{.region}}'
+    resource_type: S3
+  metadata:
+    author: Selefra
+    description: Ensure S3 Buckets have 'Block public access' enabled to prevent unauthorized
+      access.
+    id: SF010113
+    provider: AWS
+    remediation: ./remediation/s3/bucket_not_configured_block_public_access.md
+    severity: High
+    tags:
+    - Attack Surface
+    - Security
+    - Misconfiguration
+    - CIS Benchmark
+    - PCI
+    - HIPAA
+    - GDPR
+    - ISO 27001
+    - SOC 2
+    - AWS Config
     title: S3 bucket not configured block public access
   name: bucket_not_configured_block_public_access
   output: 'S3 bucket not configured block public access, arn: {{.arn}}'
   query: "SELECT\n  *\nFROM\n  aws_s3_buckets\nWHERE\n  block_public_acls IS NOT TRUE\n\
     \  OR block_public_policy IS NOT TRUE\n  OR ignore_public_acls IS NOT TRUE\n \
     \ OR restrict_public_buckets IS NOT TRUE;"
-- metadata:
+- labels:
+    bucket_url: https://{{.name}}.s3.{{.region}}.amazonaws.com
+    resource_account_id: '{{.account_id}}'
+    resource_id: '{{.arn}}'
+    resource_region: '{{.region}}'
+    resource_type: S3
+  metadata:
+    author: Selefra
+    description: Ensure that S3 bucket objects are not publicly accessible, preventing
+      unauthorized users from traversing or viewing the contents.
+    id: SF010109
+    provider: AWS
+    remediation: ./remediation/s3/bucket_object_traversal_by_acl.md
+    severity: Medium
+    tags:
+    - Attack Scenarios
+    - Attack Surface
+    - Security
+    - Misconfiguration
+    - ISO 27001
+    - SOC 2
     title: S3 bucket object traversal by acl
   name: bucket_object_traversal_by_acl
   output: 'S3 bucket object traversal by acl, arn: {{.arn}}'
@@ -65,7 +251,27 @@ rules:
     \ a2\nWHERE\n a1.selefra_id = a2.aws_s3_buckets_selefra_id\n  AND a2.grantee ::\
     \ jsonb ->> 'URI' = 'http://acs.amazonaws.com/groups/global/AllUsers'\n  AND a2.permission\
     \ IN ('READ', 'FULL_CONTROL');"
-- metadata:
+- labels:
+    bucket_url: https://{{.name}}.s3.{{.region}}.amazonaws.com
+    resource_account_id: '{{.account_id}}'
+    resource_id: '{{.arn}}'
+    resource_region: '{{.region}}'
+    resource_type: S3
+  metadata:
+    author: Selefra
+    description: Ensure that the S3 bucket objects are not publicly accessible, preventing
+      unauthorized users from potentially viewing or traversing through the contents.
+    id: SF010110
+    provider: AWS
+    remediation: ./remediation/s3/bucket_object_traversal_by_policy.md
+    severity: Medium
+    tags:
+    - Attack Scenarios
+    - Attack Surface
+    - Security
+    - Misconfiguration
+    - ISO 27001
+    - SOC 2
     title: S3 bucket object traversal by policy
   name: bucket_object_traversal_by_policy
   output: 'S3 bucket object traversal by policy, arn: {{.arn}}'
@@ -75,13 +281,55 @@ rules:
     \ AND a2 ->> 'Effect' = 'Allow'\n  AND (\n    a2 ->> 'Principal' = '*'\n    OR\
     \ a2 -> 'Principal' ->> 'AWS' = '*'\n  )\n  AND right(substring(a2 ->> 'Resource',\
     \ -2), 2) <> '/*' ;"
-- metadata:
+- labels:
+    bucket_url: https://{{.name}}.s3.{{.region}}.amazonaws.com
+    resource_account_id: '{{.account_id}}'
+    resource_id: '{{.arn}}'
+    resource_region: '{{.region}}'
+    resource_type: S3
+  metadata:
+    author: Selefra
+    description: Verify that the bucket policy includes a securely configured condition
+      key, which helps prevent unauthorized access and enhances security.
+    id: SF010112
+    provider: AWS
+    remediation: ./remediation/s3/bucket_policy_condition.md
+    severity: Informational
+    tags:
+    - Security
     title: S3 bucket policy condition
   name: bucket_policy_condition
   output: 'S3 bucket policy condition, arn: {{.arn}}'
   query: "SELECT\n  DISTINCT(a1.*)\nFROM\n  aws_s3_buckets a1,\n  json_array_elements(a1.policy\
     \ :: json -> 'Statement') a2\nWHERE\n  a2 ->> 'Condition' IS NOT NULL;"
-- metadata:
+- labels:
+    bucket_url: https://{{.name}}.s3.{{.region}}.amazonaws.com
+    resource_account_id: '{{.account_id}}'
+    resource_id: '{{.arn}}'
+    resource_region: '{{.region}}'
+    resource_type: S3
+  metadata:
+    author: Selefra
+    description: Ensure that S3 buckets are not publicly readable to prevent unauthorized
+      access and potential data leaks.
+    id: SF010104
+    provider: AWS
+    remediation: ./remediation/s3/bucket_publicly_readable.md
+    severity: High
+    tags:
+    - Attack Scenarios
+    - Attack Surface
+    - Security
+    - Misconfiguration
+    - PCI
+    - HIPAA
+    - GDPR
+    - APRA
+    - MAS
+    - NIST4
+    - ISO 27001
+    - SOC 2
+    - AWS Config
     title: S3 bucket public readable
   name: bucket_publicly_readable
   output: 'S3 bucket public readable, arn: {{.arn}}'
@@ -90,7 +338,33 @@ rules:
     \    OR a2 ->> 'Action' = 's3:Get*'\n    OR a2 ->> 'Action' = 's3:*'\n  )\n  AND\
     \ a2 ->> 'Effect' = 'Allow'\n  AND (\n    a2 ->> 'Principal' = '*'\n    OR a2\
     \ -> 'Principal' ->> 'AWS' = '*'\n  );"
-- metadata:
+- labels:
+    bucket_url: https://{{.name}}.s3.{{.region}}.amazonaws.com
+    resource_account_id: '{{.account_id}}'
+    resource_id: '{{.arn}}'
+    resource_region: '{{.region}}'
+    resource_type: S3
+  metadata:
+    author: Selefra
+    description: 'Ensure S3 buckets are not publicly writable: This policy verifies
+      that AWS S3 storage buckets do not have permissions allowing public write access,
+      preventing unauthorized users from modifying or deleting data.'
+    id: SF010108
+    provider: AWS
+    remediation: ./remediation/s3/bucket_publicly_writeable.md
+    severity: Critical
+    tags:
+    - Attack Scenarios
+    - Attack Surface
+    - Security
+    - Misconfiguration
+    - PCI
+    - APRA
+    - MAS
+    - NIST4
+    - ISO 27001
+    - SOC 2
+    - AWS Config
     title: S3 bucket public writable
   name: bucket_publicly_writeable
   output: 'S3 bucket public writable, arn: {{.arn}}'
@@ -98,12 +372,48 @@ rules:
     \ a2\nWHERE\n  a1.selefra_id = a2.aws_s3_buckets_selefra_id\n  AND a2.grantee\
     \ :: jsonb ->> 'URI' = 'http://acs.amazonaws.com/groups/global/AllUsers'\n  AND\
     \ a2.permission IN ('WRITE', 'FULL_CONTROL');"
-- metadata:
+- labels:
+    bucket_url: https://{{.name}}.s3.{{.region}}.amazonaws.com
+    resource_account_id: '{{.account_id}}'
+    resource_id: '{{.arn}}'
+    resource_region: '{{.region}}'
+    resource_type: S3
+  metadata:
+    author: Selefra
+    description: Ensure all S3 buckets exposed to the Internet have proper security
+      measures in place to prevent unauthorized access.
+    id: SF010114
+    provider: AWS
+    remediation: ./remediation/s3/bucket_resources.md
+    severity: Informational
+    tags:
+    - Attack Surface
+    - Security
+    - ISO 27001
     title: S3 storage bucket resources
   name: bucket_resources
   output: 'S3 storage bucket resources, arn: {{.arn}}'
   query: "SELECT\n  *\nFROM\n  aws_s3_buckets;"
-- metadata:
+- labels:
+    bucket_url: https://{{.name}}.s3.{{.region}}.amazonaws.com
+    resource_account_id: '{{.account_id}}'
+    resource_id: '{{.arn}}'
+    resource_region: '{{.region}}'
+    resource_type: S3
+  metadata:
+    author: Selefra
+    description: S3 bucket lacks an IP whitelist for access control. This policy identifies
+      the issue of unrestricted access to your S3 bucket, as it should only be accessible
+      by approved IP addresses.
+    id: SF010107
+    provider: AWS
+    remediation: ./remediation/s3/bucket_source_ip_not_set.md
+    severity: Low
+    tags:
+    - Attack Surface
+    - Security
+    - Misconfiguration
+    - ISO 27001
     title: S3 bucket source ip not set
   name: bucket_source_ip_not_set
   output: 'S3 bucket source ip not set, arn: {{.arn}}'
@@ -115,19 +425,86 @@ rules:
     \ 'Effect' = 'Deny'\n        AND a2 -> 'Condition' -> 'NotIpAddress' -> 'aws:SourceIp'\
     \ IS NOT NULL\n      )\n  ) AS a3 ON a1.selefra_id = a3.selefra_id\nWHERE\n  a1.name\
     \ <> a3.name\n  OR a3.name IS NULL;"
-- metadata:
+- labels:
+    bucket_url: https://{{.name}}.s3.{{.region}}.amazonaws.com
+    resource_account_id: '{{.account_id}}'
+    resource_id: '{{.arn}}'
+    resource_region: '{{.region}}'
+    resource_type: S3
+  metadata:
+    author: Selefra
+    description: Enable versioning for S3 buckets to protect and track data changes,
+      ensuring data integrity and compliance.
+    id: SF010115
+    provider: AWS
+    remediation: ./remediation/s3/bucket_versioning_is_disabled.md
+    severity: Low
+    tags:
+    - Misconfiguration
+    - PCI
+    - HIPAA
+    - GDPR
+    - APRA
+    - MAS
+    - NIST4
+    - ISO 27001
+    - SOC 2
+    - AWS Config
     title: S3 bucket versioning is disabled
   name: bucket_versioning_is_disabled
   output: 'S3 bucket versioning is disabled, arn: {{.arn}}'
   query: "SELECT\n  *\nFROM\n  aws_s3_buckets\nWHERE\n  versioning_status IS DISTINCT\n\
     FROM\n  'Enabled';"
-- metadata:
+- labels:
+    bucket_url: https://{{.name}}.s3.{{.region}}.amazonaws.com
+    resource_account_id: '{{.account_id}}'
+    resource_id: '{{.arn}}'
+    resource_region: '{{.region}}'
+    resource_type: S3
+  metadata:
+    author: Selefra
+    description: Enable MFA Delete on S3 buckets to enhance security by requiring
+      multi-factor authentication (MFA) when deleting objects, preventing unauthorized
+      data removal.
+    id: SF010103
+    provider: AWS
+    remediation: ./remediation/s3/mfa_delete_is_disable.md
+    severity: Medium
+    tags:
+    - Security
+    - Misconfiguration
+    - CIS Benchmark
+    - PCI
+    - GDPR
+    - APRA
+    - MAS
+    - NIST4
+    - ISO 27001
+    - SOC 2
     title: MFA delete is disable
   name: mfa_delete_is_disable
   output: 'MFA delete is disable, arn: {{.arn}}'
   query: "SELECT\n  *\nFROM\n  aws_s3_buckets\nWHERE\n  versioning_status IS DISTINCT\n\
     FROM\n  'Enabled'\n  OR versioning_mfa_delete IS DISTINCT\nFROM\n  'Enabled';"
-- metadata:
+- labels:
+    bucket_url: https://{{.name}}.s3.{{.region}}.amazonaws.com
+    resource_account_id: '{{.account_id}}'
+    resource_id: '{{.account_id}}'
+    resource_region: All Regions
+    resource_type: S3
+  metadata:
+    author: Selefra
+    description: Ensure that S3 account-level public access is blocked. This policy
+      verifies that your AWS account has the necessary configurations in place to
+      prevent unauthorized public access to your S3 buckets and objects, thereby enhancing
+      data security and privacy.
+    id: SF010124
+    provider: AWS
+    remediation: ./remediation/s3/s3_account_level_public_access_not_blocks.md
+    severity: Low
+    tags:
+    - AWS Config
+    - Misconfiguration
     title: S3 account level public access not blocks
   name: s3_account_level_public_access_not_blocks
   output: 'S3 account level public access not blocks, account id: {{.account_id}}'
@@ -135,7 +512,26 @@ rules:
     \ -> 'BlockPublicAcls' = 'false'\n  OR public_access_block_configuration -> 'IgnorePublicAcls'\
     \ = 'false'\n  OR public_access_block_configuration -> 'BlockPublicPolicy' = 'false'\n\
     \  OR public_access_block_configuration -> 'RestrictPublicBuckets' = 'false';"
-- metadata:
+- labels:
+    bucket_url: https://{{.name}}.s3.{{.region}}.amazonaws.com
+    resource_account_id: '{{.account_id}}'
+    resource_id: '{{.arn}}'
+    resource_region: '{{.region}}'
+    resource_type: S3
+  metadata:
+    author: Selefra
+    description: Ensure Amazon S3 bucket policies prevent unwanted access to bucket
+      resources by external AWS accounts. This policy checks that no blocked actions,
+      such as s3:GetBucket* and s3:DeleteObject, are allowed by the policy. When any
+      disallowed actions are permitted, the rule is considered NON_COMPLIANT.
+    id: SF010123
+    provider: AWS
+    remediation: ./remediation/s3/s3_bucket_blacklisted_actions_prohibited.md
+    severity: High
+    tags:
+    - Security
+    - Misconfiguration
+    - AWS Config
     title: S3 bucket blacklisted actions prohibited
   name: s3_bucket_blacklisted_actions_prohibited
   output: 'S3 bucket blacklisted actions prohibited, arn: {{.arn}}'
@@ -145,27 +541,92 @@ rules:
     \    's3:PutBucketPolicy', 's3:PutEncryptionConfiguration',\n    's3:PutObjectAcl'\n\
     \  )\n  AND a2 ->> 'Effect' = 'Allow'\n  AND (\n    a2 ->> 'Principal' = '*'\n\
     \    OR a2 -> 'Principal' ->> 'AWS' = '*'\n  );"
-- metadata:
+- labels:
+    bucket_url: https://{{.name}}.s3.{{.region}}.amazonaws.com
+    resource_account_id: '{{.account_id}}'
+    resource_id: '{{.arn}}'
+    resource_region: '{{.region}}'
+    resource_type: S3
+  metadata:
+    author: Selefra
+    description: 'Ensure S3 bucket replication is enabled: This policy verifies that
+      S3 bucket replication is active, ensuring data redundancy and availability in
+      case of unexpected failures or regional outages.'
+    id: SF010120
+    provider: AWS
+    remediation: ./remediation/s3/s3_bucket_replication_disabled.md
+    severity: Medium
+    tags:
+    - AWS Config
+    - Misconfiguration
     title: S3 bucket replication disabled
   name: s3_bucket_replication_disabled
   output: 'S3 bucket replication disabled, arn: {{.arn}}'
   query: "select\nDISTINCT(aws_s3_buckets.*)\nfrom\naws_s3_buckets, JSONB_ARRAY_ELEMENTS(\n\
     \    case jsonb_typeof(replication_rules)\n    when 'array' then replication_rules\n\
     \    else '[]' end\n) as r\nwhere\nr->>'Status' is distinct from 'Enabled';"
-- metadata:
+- labels:
+    resource_account_id: '{{.account_id}}'
+    resource_id: '{{.region}}'
+    resource_region: '{{.region}}'
+    resource_type: S3
+  metadata:
+    author: Selefra
+    description: Ensure that S3 buckets have an active backup plan to protect against
+      data loss and ensure seamless data recovery.
+    id: SF010121
+    provider: AWS
+    remediation: ./remediation/s3/s3_is_not_protected_by_backup_plan.md
+    severity: Medium
+    tags:
+    - Security
+    - Misconfiguration
+    - AWS Config
     title: S3 is not protected by backup plan
   name: s3_is_not_protected_by_backup_plan
   output: 'S3 is not protected by backup plan, region: {{.region}}'
   query: "SELECT\n  *\nFROM\n  aws_backup_region_settings\nWHERE\n  resource_type_opt_in_preference\
     \ ->> 'S3' IS DISTINCT\nFROM\n  'true';"
-- metadata:
+- labels:
+    resource_account_id: '{{.account_id}}'
+    resource_id: '{{.arn}}'
+    resource_region: '{{.region}}'
+    resource_type: S3
+  metadata:
+    author: Selefra
+    description: Ensure that S3 recovery points are created monthly. If an S3 bucket
+      lacks a recovery point within the past month, the policy will be marked as non-compliant.
+      This policy helps avoid data loss by enforcing regular backups.
+    id: SF010122
+    provider: AWS
+    remediation: ./remediation/s3/s3_last_backup_recovery_point.md
+    severity: Medium
+    tags:
+    - Security
+    - Misconfiguration
+    - AWS Config
     title: S3 last backup recovery point
   name: s3_last_backup_recovery_point
   output: 'S3 last backup recovery point, arn: {{.arn}}'
   query: "SELECT\n  DISTINCT (a1.*)\nFROM\n  aws_s3_buckets a1\n  LEFT JOIN aws_backup_vault_recovery_points\
     \ a2 ON a1.arn = a2.resource_arn\nWHERE\n  a2.selefra_id IS NULL\n  OR date_part(\
     \ 'day', NOW() - a2.completion_date ) > 31;"
-- metadata:
+- labels:
+    bucket_url: https://{{.name}}.s3.{{.region}}.amazonaws.com
+    resource_account_id: '{{.account_id}}'
+    resource_id: '{{.arn}}'
+    resource_region: '{{.region}}'
+    resource_type: S3
+  metadata:
+    author: Selefra
+    description: Ensure that S3 buckets have default encryption enabled with KMS keys
+      to protect stored data and maintain compliance with security requirements.
+    id: SF010119
+    provider: AWS
+    remediation: ./remediation/s3/s3_not_default_encryption_kms.md
+    severity: Low
+    tags:
+    - Misconfiguration
     title: S3 not default encryption kms
   name: s3_not_default_encryption_kms
   output: 'S3 not default encryption kms, arn: {{.arn}}'
@@ -175,13 +636,45 @@ rules:
     \ is not null\n)\nselect\nDISTINCT (b.*)\nfrom\naws_s3_buckets as b\nleft join\
     \ data as d on b.arn = d.bucket_arn\nwhere d.bucket_arn is null and b.arn is not\
     \ null and b.versioning_status = 'Enabled';"
-- metadata:
+- labels:
+    bucket_url: https://{{.name}}.s3.{{.region}}.amazonaws.com
+    resource_account_id: '{{.account_id}}'
+    resource_id: '{{.arn}}'
+    resource_region: '{{.region}}'
+    resource_type: S3
+  metadata:
+    author: Selefra
+    description: 'Ensure S3 Versioning and Lifecycle Policies are enabled: This policy
+      checks if the S3 buckets have versioning enabled and appropriate lifecycle policies
+      in place, which helps in efficient management of object versions, data protection,
+      and cost optimization.'
+    id: SF010118
+    provider: AWS
+    remediation: ./remediation/s3/s3_version_lifecycle_policy_not_check.md
+    severity: Low
+    tags:
+    - Misconfiguration
     title: S3 version lifecycle policy not check
   name: s3_version_lifecycle_policy_not_check
   output: 'S3 version lifecycle policy not check, arn: {{.arn}}'
   query: "SELECT\n  DISTINCT v.*\nFROM\n  aws_s3_buckets AS v\n  LEFT JOIN aws_s3_bucket_lifecycles\
     \ AS f ON v.account_id = f.account_id\nWHERE\n  f.account_id IS NULL;"
-- metadata:
+- labels:
+    bucket_url: https://{{.name}}.s3.{{.region}}.amazonaws.com
+    resource_account_id: '{{.account_id}}'
+    resource_id: '{{.arn}}'
+    resource_region: '{{.region}}'
+    resource_type: S3
+  metadata:
+    author: Selefra
+    description: Ensure that server access logs are stored in separate, dedicated
+      buckets to improve security and organization.
+    id: SF010116
+    provider: AWS
+    remediation: ./remediation/s3/the_target_bucket_for_server_access_logging_is_the_bucket_itself.md
+    severity: Low
+    tags:
+    - Misconfiguration
     title: The target bucket for server access logging is the bucket itself
   name: the_target_bucket_for_server_access_logging_is_the_bucket_itself
   output: 'The target bucket for server access logging is the bucket itself, arn:
