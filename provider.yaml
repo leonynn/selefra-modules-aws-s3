@@ -1,0 +1,4 @@
+providers:
+  - name: aws
+    provider: aws
+    cache: 1d
